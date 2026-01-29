@@ -402,6 +402,7 @@ for _, rockData in ipairs(rocks) do
 end
 
 getgenv().autoFarm, getgenv().autoFarmV2 = false, false
+local player = game:GetService("Players").LocalPlayer
 local activeRock, curDur, targetCF, selectedEmoteName = nil, 0, nil, nil
 
 local rockData = {
@@ -419,16 +420,37 @@ local rockData = {
 local emoteList = {["Fly Zor"] = 106493972274585, ["Mager Buat Emote🗿"] = 339082039}
 local blockedAnims = {["rbxassetid://3638729053"] = true, ["rbxassetid://3638767427"] = true}
 
+local rockCache = {}
+local function cacheRocks()
+    rockCache = {}
+    local folder = workspace:FindFirstChild("machinesFolder")
+    if not folder then return end
+    for _, obj in pairs(folder:GetDescendants()) do
+        if obj.Name == "neededDurability" and obj.ClassName == "IntValue" then
+            local rock = obj.Parent:FindFirstChild("Rock")
+            if rock then rockCache[obj.Value] = rock end
+        end
+    end
+end
+cacheRocks()
+
 local function useTool()
     local char = player.Character
-    local hum, bp = char:FindFirstChild("Humanoid"), player:FindFirstChild("Backpack")
-    local p = bp and bp:FindFirstChild("Punch") or char and char:FindFirstChild("Punch")
-    if hum and p then
-        if p.Parent == bp then hum:EquipTool(p) end
-        if p:FindFirstChild("attackTime") then p.attackTime.Value = 0.001 end
+    local hum = char and char:FindFirstChild("Humanoid")
+    local bp = player:FindFirstChild("Backpack")
+    local punch = (bp and bp:FindFirstChild("Punch")) or (char and char:FindFirstChild("Punch"))
+    
+    if hum and punch then
+        if punch.Parent == bp then hum:EquipTool(punch) end
+        local at = punch:FindFirstChild("attackTime")
+        if at then at.Value = 0 end
     end
+    
     local ev = player:FindFirstChild("muscleEvent")
-    if ev then ev:FireServer("punch", "leftHand") ev:FireServer("punch", "rightHand") end
+    if ev then 
+        ev:FireServer("punch", "leftHand") 
+        ev:FireServer("punch", "rightHand") 
+    end
 end
 
 local function stopAnims()
@@ -459,30 +481,39 @@ local function startFarm(mode)
         if mode == 3 then stopAnims() playEmote() task.wait(0.5) end
         while (mode == 1 and getgenv().autoFarm) or (mode == 2 and getgenv().autoFarmV2) or (mode == 3 and getgenv().autoFarm) do
             local char = player.Character
-            local hrp, dur = char and char:FindFirstChild("HumanoidRootPart"), player:FindFirstChild("Durability")
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local dur = player:FindFirstChild("Durability")
+            
             if mode == 3 then stopAnims() end
+            
             if hrp and dur and dur.Value >= curDur then
-                if mode == 2 and targetCF then hrp.CFrame = targetCF hrp.Velocity = Vector3.new(0,0,0) end
-                for _, obj in pairs(workspace.machinesFolder:GetDescendants()) do
-                    if obj.Name == "neededDurability" and obj.Value == curDur then
-                        local rock, lh, rh = obj.Parent:FindFirstChild("Rock"), char:FindFirstChild("LeftHand"), char:FindFirstChild("RightHand")
-                        if rock and rh then
-                            firetouchinterest(rock, rh, 0) firetouchinterest(rock, rh, 1)
-                            if mode ~= 3 and lh then firetouchinterest(rock, lh, 0) firetouchinterest(rock, lh, 1) end
-                            useTool()
-                        end
-                        break
+                local targetRock = rockCache[curDur] or (cacheRocks() or rockCache[curDur])
+                
+                if targetRock then
+                    if mode == 2 and targetCF then 
+                        hrp.CFrame = targetCF 
+                        hrp.Velocity = Vector3.new(0,0,0)
                     end
+                    
+                    local hitParts = {"LeftHand", "RightHand", "LeftFoot", "RightFoot"}
+                    for _, pName in ipairs(hitParts) do
+                        local p = char:FindFirstChild(pName)
+                        if p then
+                            firetouchinterest(targetRock, p, 0)
+                            firetouchinterest(targetRock, p, 1)
+                        end
+                    end
+                    useTool()
                 end
             end
-            task.wait(mode == 1 and 0.001 or 0.05)
+            task.wait(0.0001)
         end
     end)
 end
 
 local farmTab = Window:Tab({Title = "Rock Farm", Icon = "shield-check"})
 
-farmTab:Section({Title = "Ghost Rock", Icon = "ghost"})
+farmTab:Section({Title = "Ghost Rock (Fast)", Icon = "ghost"})
 for _, r in ipairs(rockData) do
     farmTab:Toggle({Title = "Ghost " .. r[1], Callback = function(v)
         activeRock, curDur, getgenv().autoFarm = r[1], r[2], v
@@ -499,15 +530,9 @@ for _, r in ipairs(rockData) do
 end
 
 farmTab:Section({Title = "Emote Rock", Icon = "sparkles"})
-farmTab:Dropdown({Title = "Select Emote", Values = {"Fly Zor", "Mager Buat Emote🗿"}, 
-Locked = true,
-        LockedTitle = "VIP USER",
-    Callback = function(v) selectedEmoteName = v end})
+farmTab:Dropdown({Title = "Select Emote", Values = {"Fly Zor", "Mager Buat Emote🗿"}, Callback = function(v) selectedEmoteName = v end})
 for _, r in ipairs(rockData) do
-    farmTab:Toggle({Title = "Emote " .. r[1], 
-    Locked = true,
-        LockedTitle = "VIP USER",
-    Callback = function(v)
+    farmTab:Toggle({Title = "Emote " .. r[1], Callback = function(v)
         if v and not selectedEmoteName then 
             WindUI:Notify({Title = "Peringatan", Content = "Pilih Emote!", Duration = 3}) 
             return 
@@ -517,7 +542,13 @@ for _, r in ipairs(rockData) do
     end})
 end
 
-player.CharacterAdded:Connect(function() if getgenv().autoFarm then task.wait(2) startFarm(3) end end)
+player.CharacterAdded:Connect(function() 
+    if getgenv().autoFarm or getgenv().autoFarmV2 then 
+        task.wait(2) 
+        local mode = getgenv().autoFarmV2 and 2 or (selectedEmoteName and 3 or 1)
+        startFarm(mode) 
+    end 
+end)
 
 local function pressE()
     VirtualInputManager:SendKeyEvent(true, "E", false, game)
