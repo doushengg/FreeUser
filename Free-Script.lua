@@ -1179,7 +1179,7 @@ KillSelect:Button({
                 end
             end)
         end
-        WindUI:Notify({Title = "Success", Content = "Attack animations removed"})
+        WindUI:Notify({Title = "Success", Content = "Attack Animations Remove"})
     end
 })
 
