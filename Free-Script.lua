@@ -46,10 +46,10 @@ WindUI.Services.CustomTextKey = {
                 end
             end,
             Copy = function()
-                setclipboard("ZorVex") 
+                setclipboard("https://discord.gg/72k4TCF9Zq") 
                 WindUI:Notify({
                     Title = "Key Info",
-                    Content = "Key 'ZorVex' telah disalin!",
+                    Content = "Join Discord To Copy Key",
                     Duration = 5
                 })
             end
@@ -95,7 +95,7 @@ local Window = WindUI:CreateWindow({
         API = {
             {
                 Type = "CustomTextKey",
-                CorrectKey = "ZorVex",
+                CorrectKey = "Vuzo",
             },
         },
     },
