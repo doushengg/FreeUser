@@ -1901,19 +1901,38 @@ rebirthTab:Toggle({
     Title = "Auto Rebirth",
     Desc = "Doing Rebirth Farming Automatic",
     Callback = function(bool)
+        if bool and (not rebirthTarget or rebirthTarget <= 0) then
+            rebirthingToTarget = false
+            WindUI:Notify({
+                Title = "Error Rebirth",
+                Content = "Enter The Rebirth Number First",
+                Duration = 5
+            })
+            return
+        end
+
         rebirthingToTarget = bool
         if bool then
             task.spawn(function()
                 while rebirthingToTarget do
-                    local leaderstats = c:FindFirstChild("leaderstats")
+                    local leaderstats = player:FindFirstChild("leaderstats")
                     local rebirths = leaderstats and leaderstats:FindFirstChild("Rebirths")
 
-                    if rebirths and rebirthTarget > 0 and rebirths.Value >= rebirthTarget then
-                        rebirthingToTarget = false
-                        break
-                    end
+                    if rebirths then
+                        if rebirthTarget > 0 and rebirths.Value >= rebirthTarget then
+                            rebirthingToTarget = false
+                            WindUI:Notify({
+                                Title = "Target Reached",
+                                Content = "Target Has Been Achieved",
+                                Duration = 86400
+                            })
+                            break
+                        end
 
-                    rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+                        pcall(function()
+                            rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+                        end)
+                    end
                     task.wait(0.1)
                 end
             end)
