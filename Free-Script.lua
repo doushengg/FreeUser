@@ -49,7 +49,7 @@ WindUI.Services.CustomTextKey = {
                 setclipboard("https://discord.gg/72k4TCF9Zq") 
                 WindUI:Notify({
                     Title = "Key Info",
-                    Content = "Join Discord To Copy Key",
+                    Content = "Join Discord To Copy Key ( Just Copy Without Hassle)",
                     Duration = 5
                 })
             end
@@ -95,7 +95,7 @@ local Window = WindUI:CreateWindow({
         API = {
             {
                 Type = "CustomTextKey",
-                CorrectKey = "Vuzo",
+                CorrectKey = "ByZorVex",
             },
         },
     },
