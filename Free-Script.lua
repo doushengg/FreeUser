@@ -81,7 +81,7 @@ end
 local Window = WindUI:CreateWindow({
     Title = "<b><font size='26'> V̬uz͠o̵ Zilu͢x</font></b>", 
     Icon = "rbxassetid://106459030518724", 
-    Author = "              By ZorVex",
+    Author = "             By ZorVex",
     Folder = "Vz_Hub_" .. tostring(os.clock()),
     Size = UDim2.fromOffset(500, 350),
     Transparent = getgenv().TransparencyEnabled,
@@ -95,7 +95,7 @@ local Window = WindUI:CreateWindow({
         API = {
             {
                 Type = "CustomTextKey",
-                CorrectKey = "ByZorVex",
+                CorrectKey = "VzEra",
             },
         },
     },
