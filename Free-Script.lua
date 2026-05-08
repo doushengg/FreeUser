@@ -95,7 +95,7 @@ local Window = WindUI:CreateWindow({
         API = {
             {
                 Type = "CustomTextKey",
-                CorrectKey = "Huang Tiandi",
+                CorrectKey = "ZorVex",
             },
         },
     },
